@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Database dumps
+pdf-chat-ai.*.json
+
+# Uploads
+/public/uploads/*
+!/public/uploads/.gitkeep
+
