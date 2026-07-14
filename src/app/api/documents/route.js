@@ -47,15 +47,7 @@ export async function POST(request) {
 
     // Set up unique filename
     const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    const filePath = path.join(uploadDir, uniqueFilename);
-    filePathToCleanup = filePath;
     
-    // Write local file
-    console.log('[Upload API] Writing file to disk:', filePath);
-    await fs.mkdir(uploadDir, { recursive: true });
-    await fs.writeFile(filePath, buffer);
-
     // 1. Parse text from PDF page-by-page
     console.log('[Upload API] Extracting text page-by-page from PDF...');
     let pages;
@@ -64,7 +56,6 @@ export async function POST(request) {
       console.log(`[Upload API] PDF parsed. Total pages: ${pages.length}`);
     } catch (parseError) {
       console.error('[Upload API] PDF extraction failed:', parseError);
-      await fs.unlink(filePath).catch(() => {});
       return NextResponse.json({ error: 'Failed to extract text from PDF file' }, { status: 400 });
     }
 
@@ -75,7 +66,6 @@ export async function POST(request) {
 
     if (textChunks.length === 0) {
       console.log('[Upload API] PDF has no extractable text content');
-      await fs.unlink(filePath).catch(() => {});
       return NextResponse.json({ error: 'The PDF has no extractable text content' }, { status: 400 });
     }
 
@@ -90,6 +80,7 @@ export async function POST(request) {
       filePath: `/uploads/${uniqueFilename}`,
       fileSize: file.size,
       chunkCount: textChunks.length,
+      pdfData: buffer,
     });
 
     // 3. Generate embeddings in optimized batches
@@ -120,9 +111,6 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error('[Upload API] Crash error:', error);
-    if (filePathToCleanup) {
-      await fs.unlink(filePathToCleanup).catch(() => {});
-    }
     return NextResponse.json(
       { error: 'Server error processing file upload' },
       { status: 500 }

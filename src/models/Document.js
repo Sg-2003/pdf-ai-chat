@@ -22,6 +22,10 @@ const DocumentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    pdfData: {
+      type: Buffer,
+      required: true,
+    },
   },
   { timestamps: true }
 );

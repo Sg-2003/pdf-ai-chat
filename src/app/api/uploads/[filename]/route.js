@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import path from 'path';
-import { promises as fs } from 'fs';
 import { verifyJWT } from '@/lib/auth';
+import connectDB from '@/lib/db';
+import Document from '@/models/Document';
 
 export async function GET(request, { params }) {
   try {
@@ -20,19 +20,15 @@ export async function GET(request, { params }) {
       return new Response('Unauthorized: Invalid session token', { status: 401 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', 'uploads', filename);
+    await connectDB();
+    const doc = await Document.findOne({ filePath: `/uploads/${filename}` });
 
-    try {
-      await fs.access(filePath);
-    } catch {
+    if (!doc || !doc.pdfData) {
       return new Response('PDF File Not Found', { status: 404 });
     }
 
-    // Read file from disk
-    const fileBuffer = await fs.readFile(filePath);
-
     // Return PDF stream directly
-    return new Response(fileBuffer, {
+    return new Response(doc.pdfData, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
