@@ -42,7 +42,7 @@ async function runDiagnostics() {
   console.log('\n[1/2] Connecting to MongoDB...');
   try {
     const conn = await connectDB();
-    console.log(`SUCCESS: Connected to database. State: ${conn.readyState} (1 = Connected)`);
+    console.log(`SUCCESS: Connected to database. State: ${conn.connection.readyState} (1 = Connected)`);
   } catch (dbErr) {
     console.error('FAILED: MongoDB Connection Failed:', dbErr.message);
   }

@@ -12,10 +12,11 @@ export async function GET() {
   // 1. Validate MongoDB connection state
   try {
     const conn = await connectDB();
-    if (conn.readyState === 1) {
+    const readyState = conn.connection?.readyState ?? conn.readyState;
+    if (readyState === 1) {
       checks.mongodb = 'connected';
     } else {
-      checks.mongodb = `disconnected (state code: ${conn.readyState})`;
+      checks.mongodb = `disconnected (state code: ${readyState})`;
     }
   } catch (err) {
     checks.mongodb = `failed: ${err.message}`;
